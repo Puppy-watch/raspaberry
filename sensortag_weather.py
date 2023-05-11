@@ -52,7 +52,7 @@ def main():
         
         if len(value_list)==20:
             
-            print(list(zip(*value_list))[0])
+            #print(list(zip(*value_list))[0])
             
             acc_x = list(zip(*value_list))[0]
             acc_y = list(zip(*value_list))[1]

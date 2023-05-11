@@ -1,0 +1,3 @@
+bluepy
+gspread
+oauth2client
