@@ -4,6 +4,13 @@ import pandas as pd
 import time
 import socket
 from _thread import *
+import pymysql as ps
+import time
+import datetime
+
+now_date = datetime.datetime.now()
+today_date = now_date.strftime('%Y-%m-%d')
+today_date = str(today_date)
 
 interpreter = tf.Interpreter(model_path="model.tflite")
 interpreter.allocate_tensors()
@@ -11,8 +18,21 @@ interpreter.allocate_tensors()
 input_details = interpreter.get_input_details()
 output_details = interpreter.get_output_details()
 
+#conn = ps.connect(host='', user='', passwd='', db='')
+curs = conn.cursor()
+
+behavior = ['none', 'stand', 'sleep', 'seat', 'walk', 'slowWalk', 'run', 'eat', 'bite']
+
+print("today_date : ", today_date)
+
+sql = f"insert into mostBehavior(dogIdx, mDate) select 1, '{today_date}' from dual where not exists(select 1 from mostBehavior where mDate='{today_date}')"
+curs.execute(sql)
+conn.commit()
+
+
 def threaded(client_socket, addr):
     print('>> Connected by :', addr[0], ':', addr[1])
+    pre_time = time.time()    
 
     while True:
 
@@ -39,8 +59,26 @@ def threaded(client_socket, addr):
             output_data = interpreter.get_tensor(output_details[0]['index'])
             output_data = np.argmax(output_data, axis =-1) # 확률 가장 높은 레이블 번호 얻기
             print('>> Predict Label : ',end='')
-            print(output_data)
+            print(output_data[0])
+            
+            
+            sql = 'delete from behavior'
+            curs.execute(sql)
+            conn.commit()
 
+            sql = f'insert into behavior(dog_idx, behaviorName) values (1, {output_data[0]})'
+            curs.execute(sql)
+            conn.commit()
+            
+            now_time = time.time()
+            gap_time = round(now_time-pre_time)
+                                    
+            
+            sql = f"update mostBehavior set {behavior[output_data[0]]}={behavior[output_data[0]]}+{gap_time} where mDate='{today_date}'"
+            curs.execute(sql)
+            conn.commit()
+            
+            pre_time = now_time
             
         except ConnectionResetError as e:
             print('>> Disconnected by ' + addr[0], ':', addr[1])
