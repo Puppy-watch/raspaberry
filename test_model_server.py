@@ -7,10 +7,15 @@ from _thread import *
 import pymysql as ps
 import time
 import datetime
+import RPi.GPIO as GPIO
+import threading
+
+PIN = 18
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(PIN, GPIO.OUT)
 
 now_date = datetime.datetime.now()
 today_date = now_date.strftime('%Y-%m-%d')
-today_date = str(today_date)
 
 interpreter = tf.Interpreter(model_path="model.tflite")
 interpreter.allocate_tensors()
@@ -22,8 +27,6 @@ output_details = interpreter.get_output_details()
 curs = conn.cursor()
 
 behavior = ['none', 'stand', 'sleep', 'seat', 'walk', 'slowWalk', 'run', 'eat', 'bite']
-
-print("today_date : ", today_date)
 
 sql = f"insert into mostBehavior(dogIdx, mDate) select 1, '{today_date}' from dual where not exists(select 1 from mostBehavior where mDate='{today_date}')"
 curs.execute(sql)
@@ -61,6 +64,12 @@ def threaded(client_socket, addr):
             print('>> Predict Label : ',end='')
             print(output_data[0])
             
+            if(output_data[0] == 8):
+                GPIO.output(PIN, GPIO.HIGH)                
+            else:
+                GPIO.output(PIN, GPIO.LOW)                
+            
+            
             
             sql = 'delete from behavior'
             curs.execute(sql)
@@ -82,6 +91,7 @@ def threaded(client_socket, addr):
             
         except ConnectionResetError as e:
             print('>> Disconnected by ' + addr[0], ':', addr[1])
+            GPIO.cleanup()
             break
 
 
