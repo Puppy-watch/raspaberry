@@ -9,6 +9,7 @@ import time
 import datetime
 import RPi.GPIO as GPIO
 import threading
+from sklearn.preprocessing import MinMaxScaler
 
 PIN = 18
 GPIO.setmode(GPIO.BCM)
@@ -26,12 +27,13 @@ output_details = interpreter.get_output_details()
 #conn = ps.connect(host='', user='', passwd='', db='')
 curs = conn.cursor()
 
-behavior = ['none', 'stand', 'sleep', 'seat', 'walk', 'slowWalk', 'run', 'eat', 'bite']
+behavior = ['stand', 'sleep', 'seat', 'walk', 'slowWalk', 'run', 'eat', 'bite']
 
 sql = f"insert into mostBehavior(dogIdx, mDate) select 1, '{today_date}' from dual where not exists(select 1 from mostBehavior where mDate='{today_date}')"
 curs.execute(sql)
 conn.commit()
 
+scaler = MinMaxScaler()
 
 def threaded(client_socket, addr):
     print('>> Connected by :', addr[0], ':', addr[1])
@@ -46,6 +48,10 @@ def threaded(client_socket, addr):
             x_test = data.split(',')
             list(x_test)
             x_test = np.array(x_test, dtype=np.float32)
+            #x_test = [x_test]
+            x_test = x_test.reshape(120,1)
+            scaler.fit(x_test)
+            x_test = scaler.transform(x_test)
 
             if not data:
                 print('>> Disconnected by ' + addr[0], ':', addr[1])
@@ -64,7 +70,7 @@ def threaded(client_socket, addr):
             print('>> Predict Label : ',end='')
             print(output_data[0])
             
-            if(output_data[0] == 8):
+            if(output_data[0] == 3):
                 GPIO.output(PIN, GPIO.HIGH)                
             else:
                 GPIO.output(PIN, GPIO.LOW)                
@@ -91,7 +97,6 @@ def threaded(client_socket, addr):
             
         except ConnectionResetError as e:
             print('>> Disconnected by ' + addr[0], ':', addr[1])
-            GPIO.cleanup()
             break
 
 
@@ -118,5 +123,7 @@ except Exception as e :
     print ('error : ',e)
 
 finally:
+    GPIO.output(PIN, GPIO.LOW)
+    GPIO.cleanup()
     server_socket.close()
 
