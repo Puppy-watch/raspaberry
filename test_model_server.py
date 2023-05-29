@@ -25,7 +25,6 @@ input_details = interpreter.get_input_details()
 output_details = interpreter.get_output_details()
 
 #conn = ps.connect(host='', user='', passwd='', db='')
-conn = ps.connect(host='puppywatch-db.co193v8oawm4.ap-northeast-2.rds.amazonaws.com', user='master', passwd='s135135!', db='puppy_data')
 curs = conn.cursor()
 
 behavior = ['stand', 'sleep', 'seat', 'walk', 'slowWalk', 'run', 'eat', 'bite']
@@ -91,7 +90,7 @@ def threaded(client_socket, addr):
             
             print("diff_minute : ",diff_minute)
             
-            if(output_data[0] == 3 and diff_muinute > 5):
+            if(output_data[0] == 3 and diff_minute > 5):
                 #GPIO.output(PIN, GPIO.HIGH)
                 pygame.mixer.music.play()
                 print("sound~~")
@@ -99,7 +98,7 @@ def threaded(client_socket, addr):
                 
                 print(now_datetime)
                 
-                sql = f"insert into abnormal(dog_idx, abnormalName, abnormalTime) values(1, 'eat','{now_datetime}')"
+                sql = f"insert into abnormal(dog_idx, abnormalName, abnormalTime) values(1, '먹기','{now_datetime}')"
                 curs.execute(sql)
                 conn.commit()
                 
@@ -108,7 +107,7 @@ def threaded(client_socket, addr):
                 pygame.mixer.music.play()
                 print("sound~~")
                                 
-                sql = f"insert into abnormal(dog_idx, abnormalName, abnormalTime) values (1, 'bite','{now_datetime}')"
+                sql = f"insert into abnormal(dog_idx, abnormalName, abnormalTime) values (1, '뜯기','{now_datetime}')"
                 curs.execute(sql)
                 conn.commit()               
                         
