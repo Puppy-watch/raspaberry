@@ -26,8 +26,8 @@ print ('>> Connect Server')
 
 
 # configurations to be set accordingly
-SENSORTAG_ADDRESS = "54:6C:0E:52:DC:BE"
-#SENSORTAG_ADDRESS = "54:6C:0E:B4:44:83"
+#SENSORTAG_ADDRESS = "54:6C:0E:52:DC:BE"
+SENSORTAG_ADDRESS = "54:6C:0E:B4:44:83"
 
 def enable_sensors(tag):
     """Enable sensors so that readings can be made."""

@@ -8,8 +8,8 @@ import pymysql as ps
 import time
 import datetime
 import RPi.GPIO as GPIO
-import threading
 from sklearn.preprocessing import MinMaxScaler
+import pygame
 
 PIN = 18
 GPIO.setmode(GPIO.BCM)
@@ -25,6 +25,7 @@ input_details = interpreter.get_input_details()
 output_details = interpreter.get_output_details()
 
 #conn = ps.connect(host='', user='', passwd='', db='')
+conn = ps.connect(host='puppywatch-db.co193v8oawm4.ap-northeast-2.rds.amazonaws.com', user='master', passwd='s135135!', db='puppy_data')
 curs = conn.cursor()
 
 behavior = ['stand', 'sleep', 'seat', 'walk', 'slowWalk', 'run', 'eat', 'bite']
@@ -34,6 +35,12 @@ curs.execute(sql)
 conn.commit()
 
 scaler = MinMaxScaler()
+
+pygame.mixer.init()
+pygame.mixer.music.load("./warning_sound.wav")
+
+certi_time = datetime.datetime.strptime("12:00:00", "%H:%M:%S")
+#certi_time = "12:00:00"
 
 def threaded(client_socket, addr):
     print('>> Connected by :', addr[0], ':', addr[1])
@@ -70,10 +77,45 @@ def threaded(client_socket, addr):
             print('>> Predict Label : ',end='')
             print(output_data[0])
             
-            if(output_data[0] == 3):
-                GPIO.output(PIN, GPIO.HIGH)                
+            
+            now_time = datetime.datetime.now()
+            now_datetime = now_time.strftime('%Y-%m-%d %H:%M:%S')
+            now_time = now_time.strftime('%H:%M:%S')
+            now_time = datetime.datetime.strptime(now_time,'%H:%M:%S')
+            
+            
+            print(type(certi_time), type(now_time))
+            
+            diff = abs(certi_time - now_time)
+            diff_minute = diff.seconds/60
+            
+            print("diff_minute : ",diff_minute)
+            
+            if(output_data[0] == 3 and diff_muinute > 5):
+                #GPIO.output(PIN, GPIO.HIGH)
+                pygame.mixer.music.play()
+                print("sound~~")
+                
+                
+                print(now_datetime)
+                
+                sql = f"insert into abnormal(dog_idx, abnormalName, abnormalTime) values(1, 'eat','{now_datetime}')"
+                curs.execute(sql)
+                conn.commit()
+                
+            elif(output_data[0] == 7 and diff_muinute > 5):
+                #GPIO.output(PIN, GPIO.HIGH)
+                pygame.mixer.music.play()
+                print("sound~~")
+                                
+                sql = f"insert into abnormal(dog_idx, abnormalName, abnormalTime) values (1, 'bite','{now_datetime}')"
+                curs.execute(sql)
+                conn.commit()               
+                        
+                
             else:
-                GPIO.output(PIN, GPIO.LOW)                
+                #GPIO.output(PIN, GPIO.LOW)
+                pygame.mixer.music.stop()
             
             
             
