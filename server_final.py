@@ -15,7 +15,7 @@ now_date = datetime.datetime.now()
 today_date = now_date.strftime('%Y-%m-%d')
 
 #interpreter = tf.Interpreter(model_path="cnn_1_final.tflite")
-interpreter = tf.Interpreter(model_path="ddu_ip_layer_final.tflite")
+interpreter = tf.Interpreter(model_path="tuner_layer3.tflite")
 interpreter.allocate_tensors()
 
 input_details = interpreter.get_input_details()
@@ -107,7 +107,7 @@ def threaded(client_socket, addr):
                 pygame.mixer.music.play()
                 print("sound~~")
                 
-                sql = f"insert into abnormal(dog_idx, abnormalName, abnormalTime) values({dog_idx}, '먹기','{now_datetime}')"
+                sql = f"insert into abnormal(dog_idx, abnormalName, abnormalTime) values(1, '먹기','{now_datetime}')"
                 curs.execute(sql)
                 conn.commit()
                 
@@ -116,7 +116,7 @@ def threaded(client_socket, addr):
                 pygame.mixer.music.play()
                 print("sound~~")
                                 
-                sql = f"insert into abnormal(dog_idx, abnormalName, abnormalTime) values ({dog_idx}, '뜯기','{now_datetime}')"
+                sql = f"insert into abnormal(dog_idx, abnormalName, abnormalTime) values (1, '뜯기','{now_datetime}')"
                 curs.execute(sql)
                 conn.commit()               
                         
@@ -131,10 +131,15 @@ def threaded(client_socket, addr):
             curs.execute(sql)
             conn.commit()
 
-            sql = f'insert into behavior(dog_idx, behaviorName) values ({dog_idx}, {output_data[0]})'
+            sql = f'insert into behavior(dog_idx, behaviorName) values (1, {output_data[0]})'
             curs.execute(sql)
             conn.commit()
             
+            """
+            sql = f"insert into abnormal(dog_idx, abnormalName, abnormalTime) values (1, '뜯기','{now_datetime}')"
+            curs.execute(sql)
+            conn.commit()
+            """
             
             now_time = time.time()
             gap_time = round(now_time-pre_time)
